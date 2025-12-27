@@ -37,6 +37,7 @@ def handle_webhook():
     """
     try:
         data = request.get_json()
+        print(f"Received Webhook Data: {data}")  # Debug logging
         
         # Verify it's a WhatsApp message
         if not data or 'object' not in data or data['object'] != 'whatsapp_business_account':
