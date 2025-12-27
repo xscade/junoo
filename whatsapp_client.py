@@ -130,9 +130,11 @@ class WhatsAppClient:
             messages = value.get('messages', [])
             
             if not messages:
+                print("No messages found in webhook data")
                 return None
             
             message = messages[0]
+            print(f"Extracting message: {message}")
             
             return {
                 'message_id': message.get('id'),
@@ -143,5 +145,7 @@ class WhatsAppClient:
             }
         except (KeyError, IndexError, TypeError) as e:
             print(f"Error extracting message data: {e}")
+            import traceback
+            traceback.print_exc()
             return None
 
