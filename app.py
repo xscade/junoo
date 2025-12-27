@@ -35,39 +35,56 @@ def handle_webhook():
     """
     Handle incoming webhook events from WhatsApp Cloud API.
     """
+    print("=" * 80)
+    print("WEBHOOK POST REQUEST RECEIVED!")
+    print("=" * 80)
+    
     try:
+        # Log raw request data
+        print(f"Request Headers: {dict(request.headers)}")
+        print(f"Request Method: {request.method}")
+        
         data = request.get_json()
-        print(f"Received Webhook Data: {data}")  # Debug logging
+        print(f"Received Webhook Data: {data}")
+        
+        # IMMEDIATELY return 200 to Meta (before any processing)
+        # This prevents timeouts
         
         # Verify it's a WhatsApp message
         if not data or 'object' not in data or data['object'] != 'whatsapp_business_account':
+            print(f"Ignored: Not a whatsapp_business_account event")
             return jsonify({'status': 'ignored'}), 200
         
         # Extract message data
         message_data = WhatsAppClient.extract_message_data(data)
         
         if not message_data:
+            print("No message data extracted")
             return jsonify({'status': 'no_message'}), 200
         
         # Only process text messages
         if message_data['type'] != 'text':
+            print(f"Ignored: Message type is {message_data['type']}, not text")
             return jsonify({'status': 'not_text'}), 200
         
         user_phone = message_data['from']
         message_text = message_data['text']
         message_id = message_data['message_id']
         
+        print(f"Processing message from {user_phone}: {message_text}")
+        
         # Mark message as read
         whatsapp_client.mark_message_as_read(message_id)
         
         # Process the message with AI agent
-        print(f"Processing message from {user_phone}: {message_text}")
         agent.process_message(user_phone, message_text)
         
         return jsonify({'status': 'success'}), 200
         
     except Exception as e:
         print(f"Error handling webhook: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 
